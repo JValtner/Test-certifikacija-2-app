@@ -2,8 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserContext from '../../UserContext';
 import { getUsers } from './services/userService';
-import { getProjectsByUser, getActiveProjects } from '../projects/services/projectService';
+import { getProjectsByUser, getActiveProjects, getCompletedProjectsByUserAndSkill } from '../projects/services/projectService';
 import ProjectList from '../projects/ProjectList';
+import SkillFilter from '../skills/SkillFilter';
 import './users.scss';
 
 const UserList = () => {
@@ -15,7 +16,7 @@ const UserList = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
+  const [selectedSkillId, setSelectedSkillId] = useState('')
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [projects, setProjects] = useState(null);
   const [projectsLoading, setProjectsLoading] = useState(false);
@@ -25,46 +26,59 @@ const UserList = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
-      return;
+      navigate('/login')
+      return
     }
 
     const fetchUsers = async () => {
-      setLoading(true);
-      setError('');
+      setLoading(true)
+      setError('')
+
       try {
-        const data = await getUsers(page, pageSize);
-        setUsers(data.items);
-        setTotalCount(data.totalCount);
+        const data = await getUsers(page, pageSize, selectedSkillId)
+        setUsers(data.items)
+        setTotalCount(data.totalCount)
       } catch (err) {
-        setError('Greška pri učitavanju korisnika.');
+        setError('Greška pri učitavanju korisnika.')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchUsers();
-  }, [page, pageSize, user, navigate]);
+    fetchUsers()
+  }, [page, pageSize, selectedSkillId, user, navigate])
 
+
+  const handleSkillChange = (skillId) => {
+    setSelectedSkillId(Number(skillId))
+    setSelectedUserId(null)
+    setProjects(null)
+    setProjectsError('')
+    setPage(1)
+  }
   const handlePageSizeChange = (e) => {
     setPageSize(Number(e.target.value));
     setPage(1);
   };
 
   const handleShowProjects = async (userId) => {
-    setSelectedUserId(userId);
-    setProjectsLoading(true);
-    setProjectsError('');
-    setProjects(null);
+    setSelectedUserId(userId)
+    setProjectsLoading(true)
+    setProjectsError('')
+    setProjects(null)
+
     try {
-      const data = await getActiveProjects(userId);
-      setProjects(data);
+      const data = selectedSkillId
+        ? await getCompletedProjectsByUserAndSkill(userId, selectedSkillId)
+        : await getActiveProjects(userId)
+
+      setProjects(data)
     } catch (err) {
-      setProjectsError('Došlo je do greške pri učitavanju projekata.');
+      setProjectsError('Došlo je do greške pri učitavanju projekata.')
     } finally {
-      setProjectsLoading(false);
+      setProjectsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="user-page-wrapper">
@@ -83,6 +97,11 @@ const UserList = () => {
           <button className="btn btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
             &gt;
           </button>
+
+          <SkillFilter
+            selectedSkillId={selectedSkillId}
+            onSkillChange={handleSkillChange}
+          />
         </div>
         <hr></hr>
         <div className="user-list">
@@ -105,7 +124,11 @@ const UserList = () => {
         {projectsLoading && <p>Učitavanje projekata...</p>}
         {projectsError && <p className="error-message">{projectsError}</p>}
         {!projectsLoading && !projectsError && projects && projects.length === 0 && (
-          <p>Korisnik nema aktivnih projekata.</p>
+          <p>
+            {selectedSkillId
+              ? 'Korisnik nema kompletiran projekat sa izabranom veštinom.'
+              : 'Korisnik nema aktivnih projekata.'}
+          </p>
         )}
         {!projectsLoading && !projectsError && projects && projects.length > 0 && (
           <ProjectList projects={projects} />

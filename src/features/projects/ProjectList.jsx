@@ -11,7 +11,7 @@ const ProjectList = ({
 }) => {
   const [statusMsg, setStatusMsg] = useState('')
   const [skillModalProject, setSkillModalProject] = useState(null)
-  const [skils, setSkils] = useState(projects.map(p => p.skills.map(s => s.name).join(', #')).join(' | '))
+
   const clearStatusMessage = () => {
     setTimeout(() => {
       setStatusMsg('')
@@ -144,7 +144,11 @@ const ProjectList = ({
           </div>
 
           <p className="project-description">{project.description}</p>
-          <span className='skils-tag-view'>Veštine:{skils}</span>
+          <span className='skils-tag-view'>Veštine:
+            <ul>
+            {project.skills?.map((skill) => <li key={skill.id}>{skill.skillName}</li>)}
+            </ul>
+          </span>
 
           <div className="project-meta">
             <span className="project-status">

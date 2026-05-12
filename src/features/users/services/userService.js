@@ -24,7 +24,16 @@ export const getUserProfile = async () => {
   return response.data;
 };
 
-export const getUsers = async (page, pageSize) => {
-  const response = await axiosConfig.get(`/users?page=${page}&pageSize=${pageSize}`);
-  return response.data;
-};
+export const getUsers = async (page, pageSize, skillId = '') => {
+  const params = new URLSearchParams({
+    page,
+    pageSize
+  })
+
+  if (skillId) {
+    params.append('skillId', skillId)
+  }
+
+  const response = await axiosConfig.get(`/users?${params.toString()}`)
+  return response.data
+}

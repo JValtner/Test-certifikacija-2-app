@@ -15,6 +15,14 @@ export const getActiveProjects = async(userId) => {
   return response.data;
 };
 
+export const getCompletedProjectsByUserAndSkill = async (userId, skillId) => {
+  const response = await axiosConfig.get(
+    `/projects/users/${userId}/completed-by-skill/${skillId}`
+  )
+
+  return response.data
+}
+
 export const createProject = async (dto) => {
   const response = await axiosConfig.post('/projects', dto);
   return response.data;
