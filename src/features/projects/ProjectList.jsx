@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { startProject, lockProject, unLockProject } from './services/projectService'
+import AddProjectSkillModal from '../skills/AddProjectSkillModal'
 import './projects.scss'
 
 const ProjectList = ({
@@ -9,7 +10,8 @@ const ProjectList = ({
   onProjectChanged
 }) => {
   const [statusMsg, setStatusMsg] = useState('')
-
+  const [skillModalProject, setSkillModalProject] = useState(null)
+  const [skils, setSkils] = useState(projects.map(p => p.skills.map(s => s.name).join(', #')).join(' | '))
   const clearStatusMessage = () => {
     setTimeout(() => {
       setStatusMsg('')
@@ -67,6 +69,16 @@ const ProjectList = ({
     }
   }
 
+  const handleSkillSaved = async () => {
+    setStatusMsg('Veština je uspešno dodata na projekat.')
+
+    if (onProjectChanged) {
+      await onProjectChanged()
+    }
+
+    clearStatusMessage()
+  }
+
   return (
     <div className="project-list">
       {statusMsg && (
@@ -102,7 +114,7 @@ const ProjectList = ({
                 </button>
               )}
 
-              {project.status === 2  && onSelectProject && (
+              {project.status === 2 && onSelectProject && (
                 <button
                   className="btn btn-secondary btn-sm"
                   onClick={() => handleUnLockProject(project.id)}
@@ -112,17 +124,27 @@ const ProjectList = ({
               )}
 
               {onSelectProject && (
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => onSelectProject(project.id)}
-                >
-                  Izmeni
-                </button>
+                <>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => onSelectProject(project.id)}
+                  >
+                    Izmeni
+                  </button>
+
+                  <button
+                    className="btn btn-success btn-sm"
+                    onClick={() => setSkillModalProject(project)}
+                  >
+                    Dodaj veštinu
+                  </button>
+                </>
               )}
             </div>
           </div>
 
           <p className="project-description">{project.description}</p>
+          <span className='skils-tag-view'>Veštine:{skils}</span>
 
           <div className="project-meta">
             <span className="project-status">
@@ -147,6 +169,14 @@ const ProjectList = ({
           </div>
         </div>
       ))}
+
+      {skillModalProject && (
+        <AddProjectSkillModal
+          project={skillModalProject}
+          onClose={() => setSkillModalProject(null)}
+          onSaved={handleSkillSaved}
+        />
+      )}
     </div>
   )
 }

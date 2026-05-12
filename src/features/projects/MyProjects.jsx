@@ -16,7 +16,7 @@ const MyProjects = () => {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
 
   const [editingProjectId, setEditingProjectId] = useState(null);
-  const [isLocked, setIsLocked] = useState(false);  
+  const [isLocked, setIsLocked] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
@@ -31,18 +31,26 @@ const MyProjects = () => {
     fetchProjects();
   }, [user, navigate]);
 
-  const fetchProjects = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await getMyProjects();
-      setProjects(data);
-    } catch (err) {
-      setError('Greška pri učitavanju projekata.');
-    } finally {
-      setLoading(false);
+  const fetchProjects = async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true)
     }
-  };
+
+    setError('')
+
+    try {
+      const data = await getMyProjects()
+      setProjects(data)
+    } catch (err) {
+      setError('Greška pri učitavanju projekata.')
+    } finally {
+      if (showLoading) {
+        setLoading(false)
+      }
+    }
+  }
+
+
 
 
   const handleSelectProject = (projectId) => {
@@ -132,7 +140,7 @@ const MyProjects = () => {
             projects={projects}
             selectedProjectId={selectedProjectId}
             onSelectProject={handleSelectProject}
-            onProjectChanged={fetchProjects}
+            onProjectChanged={() => fetchProjects(false)}
           />
         )}
       </div>
@@ -175,7 +183,7 @@ const MyProjects = () => {
             </div>
 
             <div className="form-actions-row">
-              <button type="submit" className="btn btn-primary" disabled={saving} disabled={isLocked}>
+              <button type="submit" className="btn btn-primary" disabled={saving || isLocked}>
                 {saving ? 'Čuvanje...' : 'Sačuvaj'}
               </button>
               {!isCreating && editingProjectId && (
